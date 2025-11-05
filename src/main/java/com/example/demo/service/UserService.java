@@ -2,10 +2,12 @@ package com.example.demo.service;
 
 import com.example.demo.dto.SignupRequest;
 import com.example.demo.exception.UserAlreadyExistsException;
+import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -30,6 +32,13 @@ public class UserService {
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+
+        // Set default role as USER if no roles specified
+        Set<Role> roles = signupRequest.getRoles();
+        if (roles == null || roles.isEmpty()) {
+            roles = Set.of(Role.ROLE_USER);
+        }
+        user.setRoles(roles);
 
         return userRepository.save(user);
     }

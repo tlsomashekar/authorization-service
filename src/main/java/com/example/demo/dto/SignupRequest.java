@@ -1,8 +1,10 @@
 package com.example.demo.dto;
 
+import com.example.demo.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import java.util.Set;
 
 @Data
 public class SignupRequest {
@@ -15,4 +17,6 @@ public class SignupRequest {
 
     @NotBlank
     private String password;
+
+    private Set<Role> roles;
 }

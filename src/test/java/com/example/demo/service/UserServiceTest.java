@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.SignupRequest;
+import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -108,8 +110,47 @@ class UserServiceTest {
     void validateUser_UserNotFound_ReturnsFalse() {
         when(userRepository.findByUsername("nonexistent")).thenReturn(java.util.Optional.empty());
 
-        boolean result = userService.validateUser("nonexistent", "password123");
+        boolean result = userService.validateUser("nonexistent", "wrongpassword");
 
         assertFalse(result);
+    }
+
+    @Test
+    void registerUser_WithNoRoles_AssignsDefaultUserRole() {
+        when(userRepository.existsByUsername(signupRequest.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(signupRequest.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(signupRequest.getPassword())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            assertNotNull(savedUser.getRoles());
+            assertEquals(1, savedUser.getRoles().size());
+            assertTrue(savedUser.getRoles().contains(Role.ROLE_USER));
+            return savedUser;
+        });
+
+        userService.registerUser(signupRequest);
+
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void registerUser_WithCustomRoles_AssignsSpecifiedRoles() {
+        Set<Role> customRoles = Set.of(Role.ROLE_ADMIN, Role.ROLE_MODERATOR);
+        signupRequest.setRoles(customRoles);
+
+        when(userRepository.existsByUsername(signupRequest.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(signupRequest.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(signupRequest.getPassword())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            assertNotNull(savedUser.getRoles());
+            assertEquals(2, savedUser.getRoles().size());
+            assertTrue(savedUser.getRoles().containsAll(customRoles));
+            return savedUser;
+        });
+
+        userService.registerUser(signupRequest);
+
+        verify(userRepository).save(any(User.class));
     }
 }

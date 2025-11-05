@@ -6,10 +6,12 @@ A Spring Boot-based authorization service that provides JWT token-based authenti
 
 - User registration and login
 - JWT token-based authentication
-- Role-based authorization
+- Role-based authorization with three roles (USER, MODERATOR, ADMIN)
+- Method-level security with @PreAuthorize annotations
 - H2 in-memory database
 - Swagger UI for API documentation
 - Spring Security integration
+- Comprehensive error handling with standardized responses
 
 ## Prerequisites
 
@@ -80,8 +82,35 @@ The main configuration can be found in `application.yml`. Key configurations inc
 
 - JWT token expiration: 24 hours
 - Password encryption using BCrypt
-- Role-based access control
+- Role-based access control (RBAC)
+  - ROLE_USER: Basic access to protected endpoints
+  - ROLE_MODERATOR: Access to moderation features (/api/mod/**)
+  - ROLE_ADMIN: Full access including admin features (/api/admin/**)
 - Protected endpoints require valid JWT token
+- Method-level security using @PreAuthorize annotations
+
+## Error Handling
+
+The service provides standardized error responses for various scenarios:
+
+- 400 Bad Request: Validation errors
+- 401 Unauthorized: Invalid credentials or JWT token
+- 403 Forbidden: Insufficient permissions
+- 404 Not Found: Resource not found
+- 405 Method Not Allowed: Unsupported HTTP method
+- 409 Conflict: Resource already exists (e.g., duplicate username)
+- 500 Internal Server Error: Unexpected server errors
+
+All error responses follow a consistent format:
+```json
+{
+    "status": 404,
+    "error": "Not Found",
+    "message": "The requested resource was not found",
+    "path": "/api/resource",
+    "details": null
+}
+```
 
 ## Database
 
