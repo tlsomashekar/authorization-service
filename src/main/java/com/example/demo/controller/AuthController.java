@@ -17,7 +17,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Authentication management APIs")
 public class AuthController {
+    
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
@@ -92,15 +92,20 @@ public class AuthController {
     )
     @PostMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-            String username = jwtUtil.extractUsername(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            
-            if (jwtUtil.validateToken(token, userDetails)) {
-                return ResponseEntity.ok(Map.of("valid", true));
+        try {
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+                String username = jwtUtil.extractUsername(token);
+                if (username != null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    if (jwtUtil.validateToken(token, userDetails)) {
+                        return ResponseEntity.ok(Map.of("valid", true));
+                    }
+                }
             }
+            return ResponseEntity.ok(Map.of("valid", false));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("valid", false));
         }
-        return ResponseEntity.ok(Map.of("valid", false));
     }
 }
