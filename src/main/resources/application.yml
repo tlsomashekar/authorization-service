@@ -39,4 +39,6 @@ springdoc:
     path: /swagger-ui.html
     config-url: /v3/api-docs/swagger-config
     operationsSorter: method
+    disable-swagger-default-url: true
+    url: /v3/api-docs
   default-produces-media-type: application/json
